@@ -1,0 +1,25 @@
+{
+  "name": "spider-ucev",
+  "version": "0.0.1",
+  "description": "Spiders I may want to reuse",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ucev/spider.git"
+  },
+  "author": "ucev <zhangshuaiyf@icloud.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ucev/spider/issues"
+  },
+  "homepage": "https://github.com/ucev/spider#readme",
+  "dependencies": {
+    "chalk": "^2.0.1",
+    "iconv-lite": "^0.4.18",
+    "minimist": "^1.2.0",
+    "p-queue": "^1.1.0"
+  }
+}
