@@ -98,19 +98,21 @@ function task(dest = ".", syncCnt = 10) {
   }
 
   function getImages(page = 0) {
-    var url = buildTMUrl(page);
-    fetchUrl(url).then((data) => {
-      var j = JSON.parse(data),
-        lists = j.List,
-        totalPage = j.iTotalPages;
-      lists.forEach((sk) => {
-        var name = decodeParam(sk.sProdName);
-        fetchImg(name, sk);
-      })
-      if (page < totalPage) {
-        getImages(page + 1);
-      }
-    }).catch(() => { })
+    queue.add(() => {
+      var url = buildTMUrl(page);
+      fetchUrl(url).then((data) => {
+        var j = JSON.parse(data),
+          lists = j.List,
+          totalPage = j.iTotalPages;
+        lists.forEach((sk) => {
+          var name = decodeParam(sk.sProdName);
+          fetchImg(name, sk);
+        })
+        if (page < totalPage) {
+          getImages(page + 1);
+        }
+      }).catch(() => { })
+    })
   }
 
   return () => {
@@ -123,8 +125,6 @@ function parseParams() {
   return minimist(process.argv.splice(2));
 }
 
-
-
 if (require.main == module) {
   var p = parseParams();
   var param = Object.assign({ d: ".", c: 10 }, p);
@@ -132,5 +132,5 @@ if (require.main == module) {
   task(param.d, param.c)();
 }
 
-export default task;
+module.exports = task;
 
