@@ -100,7 +100,7 @@ function task(dest = ".", syncCnt = 10) {
   function getImages(page = 0) {
     queue.add(() => {
       var url = buildTMUrl(page);
-      fetchUrl(url).then((data) => {
+      return fetchUrl(url).then((data) => {
         var j = JSON.parse(data),
           lists = j.List,
           totalPage = j.iTotalPages;
@@ -128,7 +128,6 @@ function parseParams() {
 if (require.main == module) {
   var p = parseParams();
   var param = Object.assign({ d: ".", c: 10 }, p);
-  console.log(param);
   task(param.d, param.c)();
 }
 
