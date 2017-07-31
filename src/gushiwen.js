@@ -1,9 +1,19 @@
+/**
+ * 
+ * @author <a href="mailto:zhangshuaiyf@icloud.com">ucev</a>
+ * @version 0.0.1 (2017-7-3)
+ * @fileoverview 
+ *   命令行参数说明
+ *      l: 是否仅获取古籍列表
+ *      n: 如果 l 存在，获取古籍列表到文件名
+ */
+
 const { fetchDOM, resolveURL } = require('./utils/fetch')
 const jsyaml = require('js-yaml')
 const fs = require('fs')
 const minimist = require('minimist')
 const logger = require('./utils/logger')
-const readline = require('readline')
+const getInt = require('./utils/getInt')
 
 const GSW_LIST = 'http://so.gushiwen.org/guwen/'
 
@@ -81,21 +91,17 @@ async function downloadGuwen () {
   for (var i = 0; i < list.length; i++) {
     console.log('%d  %s', i + 1, list[i].title)
   }
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
+  var index = await getInt('请输入你想要下载的古籍序号：').catch(() => {
+    logger.error('请输入正确的古籍序号')
+    process.exit(0)
   })
-  rl.question('请输入你想要下载的古籍序号：', (answer) => {
-    rl.close()
-    var index = parseInt(answer)
-    if (isNaN(index) || index < 0 || index > list.length) {
-      logger.error('请输入正确的古籍序号')
-      process.exit(0)
-    }
-    var furl = list[index - 1].link
-    var fname = `${list[index - 1].title}.txt`
-    fetchGuWen(furl, fname)
-  })
+  if (index < 0 || index > list.length) {
+    logger.error('请输入正确的古籍序号')
+    process.exit(0)
+  }
+  var furl = list[index - 1].link
+  var fname = `${list[index - 1].title}.txt`
+  fetchGuWen(furl, fname)
 }
 
 if (require.main === module) {

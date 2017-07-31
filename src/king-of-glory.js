@@ -1,12 +1,3 @@
-const fs = require('fs')
-const path = require('path')
-const http = require('http')
-
-const iconv = require('iconv-lite')
-const minimist = require('minimist')
-const PQueue = require('p-queue')
-const url = require('url')
-
 /**
  * 
  * @author <a href="mailto:zhangshuaiyf@icloud.com">ucev</a>
@@ -15,9 +6,18 @@ const url = require('url')
  *   命令行参数说明
  *      d: 目标文件夹
  *      c: 允许并行下载线程的数量
+ *      s: 下载图片的尺寸 1-8
  */
 
-function task (dest = '.', syncCnt = 10) {
+const path = require('path')
+const minimist = require('minimist')
+const PQueue = require('p-queue')
+
+const { fetchUrl, downloadImg } = require('./utils/fetch')
+const logger = require('./utils/logger')
+const getInt = require('./utils/getInt')
+
+function task (dest = '.', syncCnt = 10, fetchSize = [1, 1]) {
   const queue = new PQueue({ concurrency: syncCnt })
 
   function buildTMUrl (page) {
@@ -28,36 +28,9 @@ function task (dest = '.', syncCnt = 10) {
     return decodeURIComponent(name)
   }
 
-  function downloadImg (furl, name) {
-    return new Promise((resolve, reject) => {
-      var exists = fs.existsSync(path.dirname(name))
-      if (!exists) {
-        fs.mkdirSync(path.dirname(name))
-      }
-      var res = url.parse(furl)
-      http.get({
-        protocal: res.protocal,
-        host: res.host,
-        path: res.pathname,
-        timeout: 5
-      }, (res) => {
-        res.on('error', () => {
-          reject(name)
-        })
-        var ws = fs.createWriteStream(name)
-        ws.on('finish', () => {
-          resolve(name)
-        }).on('error', () => {
-          reject(name)
-        })
-        res.pipe(ws, true)
-      })
-    })
-  }
-
   function fetchImg (name, data) {
     var url
-    for (var i = 1; i <= 8; i++) {
+    for (var i = fetchSize[0]; i <= fetchSize[1]; i++) {
       ((i) => {
         url = data[`sProdImgNo_${i}`]
         url = url.slice(0, -3) + '0'
@@ -75,22 +48,6 @@ function task (dest = '.', syncCnt = 10) {
     }
   }
 
-  function fetchUrl (url) {
-    return new Promise((resolve, reject) => {
-      http.get(url, (res) => {
-        var html = ''
-        res.on('data', (chunk) => {
-          var buf = iconv.decode(chunk, 'GBK')
-          html += buf.toString()
-        }).on('end', () => {
-          resolve(html)
-        }).on('error', (err) => {
-          reject(err)
-        })
-      })
-    })
-  }
-
   function getImagePath (name, i) {
     return path.join(dest, String(i), name + '.jpg')
   }
@@ -98,7 +55,7 @@ function task (dest = '.', syncCnt = 10) {
   function getImages (page = 0) {
     queue.add(() => {
       var url = buildTMUrl(page)
-      return fetchUrl(url).then((data) => {
+      return fetchUrl(url, 'GBK').then((data) => {
         var j = JSON.parse(data)
         var lists = j.List
         var totalPage = j.iTotalPages
@@ -122,10 +79,54 @@ function parseParams () {
   return minimist(process.argv.splice(2))
 }
 
-if (require.main === module) {
+function getFetchSize (n) {
+  n = parseInt(n)
+  if (n >= 1 && n <= 8) {
+    return [n, n]
+  } else {
+    return [1, 8]
+  }
+}
+
+async function __imageSize () {
+  var sizes = {
+    1: '缩略图',
+    2: '1024x768',
+    3: '1280x720',
+    4: '1280x1024',
+    5: '1440x900',
+    6: '1920x1080',
+    7: '1920x1200',
+    8: '1920x1440',
+    0: '全部'
+  }
+  var prompt = '请输入你想要下载图片的尺寸\n'
+  for (var k in sizes) {
+    prompt += `[${k}, ${sizes[k]}]\n`
+  }
+  var index = await getInt(prompt).catch(() => {
+    logger.error('请输入正确的尺寸编号')
+    process.exit(0)
+  })
+  if (index < 0 || index > 8) {
+    logger.error('请输入正确的尺寸编号')
+    process.exit(0)
+  }
+  return index
+}
+
+async function __exec () {
   var p = parseParams()
+  if (!p.s) {
+    p.s = await __imageSize()
+  }
+  p.s = getFetchSize(p.s)
   var param = Object.assign({ d: '.', c: 10 }, p)
-  task(param.d, param.c)()
+  task(param.d, param.c, param.s)()
+}
+
+if (require.main === module) {
+  __exec()
 }
 
 module.exports = task
