@@ -1,15 +1,26 @@
 const fs = require('fs')
 const path = require('path')
 const http = require('http')
+const https = require('https')
 const url = require('url')
 const iconv = require('iconv-lite')
 const { JSDOM } = require('jsdom')
+
+function getFetchMethod (protocal) {
+  if (protocal.startsWith('https')) {
+    return https.get
+  } else if (protocal.startsWith('http')) {
+    return http.get
+  } else {
+    throw new Error(`Protocal ${protocal} is not supported`)
+  }
+}
 
 function fetchUrl (furl, encoding = 'utf8') {
   return new Promise((resolve, reject) => {
     try {
       var urlparams = url.parse(furl)
-      var req = http.get({
+      var req = getFetchMethod(urlparams.protocol)({
         protocol: urlparams.protocol,
         host: urlparams.host,
         port: urlparams.port,
