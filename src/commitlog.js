@@ -1,9 +1,9 @@
 /**
  * 
  * @author <a href="mailto:zhangshuaiyf@icloud.com">ucev</a>
- * @version 0.0.1 (2017-7-3)
+ * @version 0.0.1 (2017-8-5)
  * @fileoverview 
- *   功能: 拉去git仓库的commit记录
+ *   功能: 拉取git仓库的commit记录
  *   命令行参数说明
  *      l: 目标库的地址
  *      d: 保存到文件名
