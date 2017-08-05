@@ -3,14 +3,14 @@
  * @author <a href="mailto:zhangshuaiyf@icloud.com">ucev</a>
  * @version 0.0.1 (2017-7-3)
  * @fileoverview 
+ *   功能: 拉取古诗文网上的古文
  *   命令行参数说明
  *      l: 是否仅获取古籍列表
  *      n: 如果 l 存在，获取古籍列表到文件名
  */
 
 const { fetchDOM, resolveURL } = require('./utils/fetch')
-const jsyaml = require('js-yaml')
-const fs = require('fs')
+const { saveTo } = require('./utils/data')
 const minimist = require('minimist')
 const logger = require('./utils/logger')
 const getInt = require('./utils/getInt')
@@ -41,9 +41,7 @@ async function _guwenlist (furl, encoding) {
 async function guwenList (fname) {
   var list = await _guwenlist(GSW_LIST)
   if (fname) {
-    var flist = jsyaml.safeDump(list)
-    var ws = fs.createWriteStream(fname)
-    ws.end(flist)
+    saveTo(list, fname)
   }
   return list
 }
@@ -75,10 +73,9 @@ function fetchGuWen (furl, fname) {
       var fres = conts.map((c, i) => {
         return { title: res[i].title, content: c }
       })
-      fres = jsyaml.safeDump(fres)
-      var ws = fs.createWriteStream(fname)
-      ws.write(fres)
-      ws.close()
+      if (fname) {
+        saveTo(fres, fname)
+      }
     })
   }).catch((e) => {
     console.log(e)

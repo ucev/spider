@@ -3,6 +3,7 @@
  * @author <a href="mailto:zhangshuaiyf@icloud.com">ucev</a>
  * @version 0.0.1 (2017-7-3)
  * @fileoverview 
+ *   功能: 下载王者荣耀英雄的皮肤
  *   命令行参数说明
  *      d: 目标文件夹
  *      c: 允许并行下载线程的数量

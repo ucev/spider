@@ -54,6 +54,7 @@ async function fetchDOM (furl, encoding) {
 }
 
 function resolveURL (furl, rooturl) {
+  if (rooturl[rooturl.length - 1] !== '/') rooturl = rooturl + '/'
   return furl && rooturl ? url.resolve(rooturl, furl) : ''
 }
 
